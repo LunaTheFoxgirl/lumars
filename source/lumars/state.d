@@ -89,7 +89,7 @@ struct LuaState
             luaL_openlibs(this.handle);
         }
 
-        this._G = LuaTablePseudo(&this, LUA_GLOBALSINDEX);
+        //this._G = LuaTablePseudo(&this, LUA_GLOBALSINDEX);
     }
 
     /// For non-wrappers, destroy the lua state.
@@ -253,7 +253,9 @@ struct LuaState
         static foreach(i; 0..Args.length/2)
             reg[i] = luaL_Reg(Args[i*2].ptr, &luaCWrapperSmart!(Args[i*2+1]));
 
-        luaL_register(this.handle, libname.toStringz, reg.ptr);
+        lua_createtable(this.handle, 0, 0);
+        luaL_setfuncs(this.handle, reg.ptr, 0);
+        lua_setglobal(this.handle, libname.toStringz);
     }
 
     @nogc
@@ -801,4 +803,9 @@ unittest
     assert(luaa.b == [B("c")]);
     assert(luaa.c.length == 1);
     assert(luaa.c["c"] == C("123"));
+}
+
+shared static this() {
+    import bindbc.lua : loadLua;
+    loadLua();
 }
